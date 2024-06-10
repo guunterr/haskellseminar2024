@@ -15,6 +15,11 @@ foldrTree = undefined
 levels :: BinaryTree a -> [[a]]
 levels = undefined
 
+
+-- 関数からリストを作る
+unfoldList :: (b -> Maybe (a,b)) -> b -> [a]
+unfoldList = undefined
+
 -- 関数から木を作りましょう
 unfoldTree :: (a -> Maybe (n, a, a)) -> a -> BinaryTree n
 unfoldTree = undefined
