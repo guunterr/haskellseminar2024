@@ -9,35 +9,41 @@ data Maybe a = Nothing | Just a
 data BinaryTree a = Leaf | Node a (BinaryTree a) (BinaryTree a)
   deriving (Show, Read, Eq)
 
-instance Functor Maybe where  
+instance Functor Maybe where
   fmap :: (a -> b) -> Maybe a -> Maybe b
-  fmap = undefined
+  fmap f Nothing = Nothing
+  fmap f (Just x) = Just $ f x
 
 instance Applicative Maybe where
   pure :: a -> Maybe a
-  pure = undefined
+  pure = Just
   (<*>) :: Maybe (a -> b) -> Maybe a -> Maybe b
-  (<*>) = undefined
+  (<*>) Nothing _ = Nothing
+  (<*>) (Just f) Nothing = Nothing
+  (<*>) (Just f) (Just a) = Just $ f a
 
 instance Monad Maybe where
   (>>=) :: Maybe a -> (a -> Maybe b) -> Maybe b
-  (>>=) = undefined
+  (>>=) Nothing _ = Nothing
+  (>>=) (Just a) f = f a
 
-instance Functor BinaryTree where  
+instance Functor BinaryTree where
   fmap :: (a -> b) -> BinaryTree a -> BinaryTree b
-  fmap = undefined
+  fmap f Leaf = Leaf
+  fmap f (Node a l r) = Node (f a) (fmap f l) (fmap f r)
 
---ネタバレ：うまくいかない
 instance Applicative BinaryTree where
   pure :: a -> BinaryTree a
-  pure = undefined
+  pure a = Node a (pure a) (pure a)
   (<*>) :: BinaryTree (a -> b) -> BinaryTree a -> BinaryTree b
-  (<*>) = undefined
+  (<*>) _ Leaf = Leaf
+  (<*>) Leaf _ = Leaf
+  (<*>) (Node f fl fr) (Node a l r) = Node (f a) Leaf Leaf
 
---ネタバレ：うまくいかない
 instance Monad BinaryTree where
   (>>=) :: BinaryTree a -> (a -> BinaryTree b) -> BinaryTree b
-  (>>=) = undefined
+  (>>=) Leaf _ = Leaf
+  (>>=) (Node a l r) f = f a
 
 --Those who are more categorically inclined can also prove that these implementations are actually correct
 --e.g fmap id == id, fmap (f . g) == fmap f . fmap g, same for pure, <*> ,>>= etc
@@ -54,10 +60,10 @@ class Monoid m where
 
 instance Monoid [a] where
   mempty :: [a]
-  mempty = undefined
+  mempty = []
   mappend :: [a] -> [a] -> [a]
-  mappend = undefined
-  
+  mappend = (++)
+
 --Then write the following more general version of the function from last weeks exercises
 
 zipConcat :: [[a]] -> [[a]] -> [[a]]
@@ -67,4 +73,7 @@ zipConcat xs [] = xs
 zipConcat [] ys = ys
 
 zipMonoid :: Monoid m => [m] -> [m] -> [m]
-zipMonoid = undefined
+zipMonoid [] [] = []
+zipMonoid (x:xs) (y:ys) = mappend x y : zipMonoid xs ys
+zipMonoid xs [] = xs
+zipMonoid [] ys = ys
